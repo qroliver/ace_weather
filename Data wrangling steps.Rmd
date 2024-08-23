@@ -1,0 +1,20 @@
+# Data cleaning steps.
+
+1.  I started by importing the tidyverse package I need to import and clean the data.
+2.  Next, I import the data with the name ace_data_raw.
+3.  I have a glimpse at the data. Here I can see that there are 18,919 rows and 25 variables.
+4.  I have a look at the first 6 rows.
+
+In the steps 3 and 4, I can see that some cleaning is needed for, at least, some of the columns, like *prec*.
+
+5.  Data wrangling steps:
+
+-   Column renaming (to English).
+-   Entries in the variable name changed to lowcase except the first letter.
+-   In the variable *prec*, replacement of "Ip" for "0.0".
+-   Change of the data type of the variable *prec* from character to numeric, after replacing the "," for ".".
+-   Creation of variables called *day*, *month*, *year* (from the *date* variable) and *day_month* (by combining *day* and *month*). In the creation of the latter, I used the year 2020 because it is a leap year (otherwise, the $29^{th}$ of February would be filled with NAs).
+
+6.  Checking the tidy data, by having a look at the first rows, a glimse and checking for missing values.
+
+
