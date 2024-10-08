@@ -48,7 +48,11 @@ ace_data <- ace_data_raw %>%
 head(ace_data)
 
 
-# glimse
+# checking the last few rows of the tidy data
+tail(ace_data)
+
+
+# glimpse
 glimpse(ace_data)
 
 
