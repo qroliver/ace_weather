@@ -27,7 +27,7 @@ ace_data %>%
        subtitle = "Data from 1973 to 2023",
        x = "Year",
        y = "Mean temperature (°C)",
-       caption = "Data source: Aemet.") +
+       caption = "Data: Aemet.") +
   theme_bw(base_family = "Arial") +
   theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
         plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
@@ -161,10 +161,18 @@ ace_data %>%
   geom_tile(colour = "white", size = 0.4) +
   geom_text(aes(label = day), size = 2.5) +
   scale_fill_manual(values = c("white", "#ffffcc", "yellow", "orange", "red"),
-                    labels = c("<30°C", "30-34°C", "34-37°C", "37-40°C", ">40°C")) +
-  labs(fill = "Tmax") +
+                    labels = c("<30°C", "30-34°C", "34-37°C", "37-40°C", ">40°C"),
+                    guide = guide_legend(title.position = "top",
+                                         override.aes = list(colour = "black"))) +
+  labs(title = "Daily maximum temperatures \nthroughout the year 2023",
+       subtitle = "Lanzarote Airport data",
+       caption = "Data: Aemet.",
+       fill = "Tmax") +
   theme_minimal(base_family = "Arial") +
   theme(aspect.ratio = 1/2,
+        plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_markdown(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50", vjust = -1),
         axis.title = element_blank(),
         axis.ticks = element_blank(),
         axis.text.y = element_blank(),
@@ -172,12 +180,11 @@ ace_data %>%
         panel.background = element_blank(),
         strip.background = element_blank(),
         strip.text = element_text(face = "bold", size = 15),
-        legend.position = "bottom",
+        legend.position = "right",
         legend.text = element_text(hjust = 0.5),
         legend.title = element_text(face = "bold", size = 9, hjust = 0.5),
+        legend.margin = margin(l = 10),
         panel.border = element_rect(colour = "grey", fill = NA, linewidth = 1)) +
-  guides(fill = guide_legend(title.position = "top",
-                             override.aes = list(colour = "black"))) +
   facet_wrap(vars(month), nrow = 4, ncol = 3, scales = "free")
   
 
