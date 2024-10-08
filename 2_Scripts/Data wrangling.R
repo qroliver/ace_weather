@@ -15,6 +15,10 @@ glimpse(ace_data_raw)
 head(ace_data_raw)
 
 
+# last 6 rows
+tail(ace_data_raw)
+
+
 # data wrangling
 ace_data <- ace_data_raw %>%
   # renaming columns (to English)
