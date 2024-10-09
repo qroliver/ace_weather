@@ -646,7 +646,27 @@ ace_data %>%
             by = "year") %>%
   mutate(decade = as.character(10 * floor(year / 10))) %>%
   ggplot(aes(x = prec_an, y = tmean_an, shape = decade)) +
+  geom_rect(aes(xmin = -100, xmax = 0, ymin = -1.5, ymax = 0),
+            fill = "#a6cee3", alpha = 0.1) +
+  geom_rect(aes(xmin = 0, xmax = 200, ymin = -1.5, ymax = 0),
+            fill = "#1f78b4", alpha = 0.1) +
+  geom_rect(aes(xmin = 0, xmax = 200, ymin = 0, ymax = 2.5),
+            fill = "#d73027", alpha = 0.1) +
+  geom_rect(aes(xmin = -100, xmax = 0, ymin = 0, ymax = 2.5),
+            fill = "#fdae61", alpha = 0.1) +
+  annotate(geom = "text", label = "Colder\nDrier", x = -95, y = -1.25, colour = "white",
+           hjust = "left", fontface = "bold") +
+  annotate(geom = "text", label = "Colder\nWetter", x = 195, y = -1.25, colour = "white",
+           hjust = "right", fontface = "bold") +
+  annotate(geom = "text", label = "Warmer\nWetter", x = 195, y = 2.25, colour = "white",
+           hjust = "right", fontface = "bold") +
+  annotate(geom = "text", label = "Warmer\nDrier", x = -95, y = 2.25, colour = "white",
+           hjust = "left", fontface = "bold") +
   geom_point(size = 3) +
+  scale_x_continuous(limits = c(-100, 200),
+                     expand = c(0, 0)) +
+  scale_y_continuous(limits = c(-1.5, 2.5),
+                     expand = c(0, 0)) +
   theme_bw(base_family = "sans")
 
 
