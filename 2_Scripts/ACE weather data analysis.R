@@ -60,20 +60,20 @@ ace_data %>%
   scale_fill_gradient2(low = "#053061", mid = "#f7f7f7", high = "#67001f",
                        midpoint = 0, limits = c(-2.1, 2.1)) +
   geom_label_repel(data = ~.x %>% filter(ta == max(ta)),
-                   aes(x = year, y = ta, label = paste0(round(ta, 2), "°C")),
+                   aes(x = year, y = ta, label = paste0("+", round(ta, 2), "°C")),
                    size = 3.5, nudge_x = -2.5, nudge_y = 0.1, fill = "white",
                    colour = "#67001f", fontface = "bold") +
   geom_label_repel(data = ~.x %>% 
                      filter(ta != max(ta)) %>%
                      filter(ta == max(ta)),
-                   aes(x = year, y = ta, label = paste0(round(ta, 2), "°C")),
+                   aes(x = year, y = ta, label = paste0("+", round(ta, 2), "°C")),
                    size = 3.5, nudge_x = -2.5, nudge_y = 0.1, fill = "white",
                    colour = "#67001f", fontface = "bold") +
   geom_label_repel(data = ~.x %>% 
                      filter(ta != max(ta)) %>%
                      filter(ta != max(ta)) %>%
                      filter(ta == max(ta)),
-                   aes(x = year, y = ta, label = paste0(round(ta, 2), "°C")),
+                   aes(x = year, y = ta, label = paste0("+", round(ta, 2), "°C")),
                    size = 3.5, nudge_x = -2.5, nudge_y = 0.1, fill = "white",
                    colour = "#67001f", fontface = "bold") +
   labs(title = "Annual mean temperature deviations at Lanzarote Airport",
@@ -508,13 +508,146 @@ ace_data %>%
              margin = margin(t = 10))
 
 
-# precipitation
+# annual precipitation
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  group_by(year) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  ggplot(aes(x = year, y = prec)) +
+  geom_col(fill = "darkblue") +
+  geom_label_repel(data = ~.x %>% filter(prec == min(prec)),
+                   aes(x = year, y = prec, label = paste(prec, "mm", sep = " ")),
+                   size = 3.5, nudge_y = 120, colour ="red", fontface = "bold") +
+  geom_label_repel(data = ~.x %>% filter(prec == max(prec)),
+                   aes(x = year, y = prec, label = paste(prec, "mm", sep = " ")),
+                   size = 3.5, nudge_x = 1, nudge_y = 10, colour ="blue", fontface = "bold") +
+  scale_y_continuous(breaks = pretty_breaks(n = 7),
+                     expand = expansion(mult = c(0, 0.1))) +
+  scale_x_continuous(breaks = seq(1975, 2020, 5),
+                     expand = c(0.01, 0.01)) +
+  labs(title = "Annual precipitation at Lanzarote Airport",
+       subtitle = "Data from 1973 to 2023",
+       x = "Year",
+       y = "mm",
+       caption = "Data: Aemet.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
 
 
+# yearly precipitation anomalies (reference period: 1973-2000)
+ref_prec <- ace_data %>%
+  filter(year > 1972 & year < 2001) %>%
+  group_by(year) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  summarise(prec = mean(prec, na.rm = TRUE)) %>%
+  pull()
 
 
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  group_by(year) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  mutate(prec_an = prec - ref_prec) %>%
+  ggplot(aes(x = year, y = prec_an, fill = prec_an)) +
+  geom_col(colour = "#333333") +
+  geom_label_repel(data = ~.x %>% filter(prec_an == min(prec_an)),
+                   aes(x = year, y = prec_an, label = paste(round(prec_an, 2), "mm", sep = " ")),
+                   size = 3.5, nudge_x = -0.5, nudge_y = -15, fill = "white",
+                   colour = "#67001f", fontface = "bold") +
+  geom_label_repel(data = ~.x %>% filter(prec_an == max(prec_an)),
+                   aes(x = year, y = prec_an, 
+                       label = paste(paste0("+", round(prec_an, 2)), "mm", sep = " ")),
+                   size = 3.5, nudge_x = 1, nudge_y = 1, fill = "white",
+                   colour = "darkblue", fontface = "bold") +
+  scale_x_continuous(breaks = seq(1975, 2020, 5)) +
+  scale_y_continuous(limits = c(-200, 200),
+                     breaks = pretty_breaks(n = 9)) +
+  scale_fill_gradient2(low = "#9e0142", mid = "#f7f7f7", high = "#5e4fa2",
+                       midpoint = 0,
+                       limits = c(-200, 200)) +
+  labs(title = "Annual precipitation anomalies at Lanzarote Airport",
+       subtitle = "Deviations from the annual mean precipitation for the period 1973-2000",
+       x = "Year",
+       y = "mm",
+       caption = "Data: Aemet.",
+       fill = "mm") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
 
 
+# monthly precipitation
+ace_data %>%
+  filter(year == 2023) %>%
+  group_by(month) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  left_join(ace_data %>%
+              filter(year > 1972 & year < 2001) %>%
+              group_by(month, year) %>%
+              summarise(prec_ref = sum(prec, na.rm = TRUE)) %>%
+              group_by(month) %>%
+              summarise(prec_ref = mean(prec_ref, na.rm = TRUE)),
+            by = "month") %>%
+  pivot_longer(cols = starts_with("prec"),
+               names_to = "period",
+               values_to = "prec_mm") %>%
+  ggplot(aes(x = month, y = prec_mm, fill = period)) +
+  geom_col(position = "dodge",
+           colour = "#333333") +
+  scale_x_continuous(breaks = 1:12,
+                     labels = month.abb,
+                     expand = c(0.01, 0.01)) +
+  scale_y_continuous(breaks = pretty_breaks(n = 6),
+                     expand = expansion(mult = c(0, 0.1))) +
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4"),
+                    labels = c("2023", "1973-2000"),
+                    name = "Period") +
+  labs(title = "Comparison of monthly precipitation in 2023 vs. the reference period",
+       subtitle = "Reference period: 1973-2000",
+       x = "Month",
+       y = "Precipitation (mm)",
+       caption = "Data: Aemet") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+
+# year classification according to mean temperature and precipitation anomalies
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  group_by(year) %>%
+  summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
+  mutate(tmean_an = tmean - ref_tmean) %>%
+  left_join(ace_data %>%
+              filter(year > 1972 & year < 2024) %>%
+              group_by(year) %>%
+              summarise(prec = sum(prec, na.rm = TRUE)) %>%
+              mutate(prec_an = prec - ref_prec),
+            by = "year") %>%
+  mutate(decade = as.character(10 * floor(year / 10))) %>%
+  ggplot(aes(x = prec_an, y = tmean_an, shape = decade)) +
+  geom_point(size = 3) +
+  theme_bw(base_family = "sans")
 
 
 
