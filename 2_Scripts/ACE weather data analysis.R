@@ -508,6 +508,41 @@ ace_data %>%
              margin = margin(t = 10))
 
 
+# mean temperature by month and decade
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  mutate(decade = factor(as.character(10 * floor(year / 10)),
+                         levels = as.character(seq(1970, 2020, 10)))) %>%
+  group_by(decade, month) %>%
+  summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
+  ggplot(aes(x = month, y = tmean, group = decade, colour = decade, shape = decade)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 4) +
+  scale_x_discrete(breaks = 1:12,
+                   labels = month.abb) +
+  scale_y_continuous(breaks = pretty_breaks(n = 7)) +
+  scale_colour_manual(values = c("#313695", "#74add1", "#abd9e9", "#fee090", "#f46d43", "#a50026")) +
+  scale_shape_manual(values = 20:15) +
+  labs(title = "Monthly mean temperature by decade at Lanzarote Airport",
+       subtitle = "Data from 1973 to 2023",
+       x = "Month",
+       y = "Temperature (°C)",
+       caption = "Data: Aemet.",
+       colour = "Decade",
+       shape = "Decade") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+
+
 # annual precipitation
 ace_data %>%
   filter(year > 1972 & year < 2024) %>%
@@ -662,17 +697,119 @@ ace_data %>%
            hjust = "right", fontface = "bold") +
   annotate(geom = "text", label = "Warmer\nDrier", x = -95, y = 2.25, colour = "white",
            hjust = "left", fontface = "bold") +
+  geom_label_repel(data = ~.x %>% filter(year %in% 2019:2023),
+                   aes(label = year), fontface = "bold") +
   geom_point(size = 3) +
   scale_x_continuous(limits = c(-100, 200),
                      expand = c(0, 0)) +
   scale_y_continuous(limits = c(-1.5, 2.5),
                      expand = c(0, 0)) +
-  theme_bw(base_family = "sans")
+  scale_shape_manual(values = 20:15) +
+  labs(title = "Temperature and precipitation anomalies at Lanzarote airport",
+       subtitle = "Data from 1973-2023. Reference period: 1973-2000",
+       x = "Precipitation anomaly (mm)",
+       y = "Temperature anomaly (°C)",
+       caption = "Data: Aemet.",
+       shape = "Decade") +
+  theme_bw(base_family = "sans") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
 
 
+# What about 2024 (first 9 months)
+ace_data %>%
+  filter(year > 1973 & year < 2001) %>%
+  group_by(month, day) %>%
+  summarise(tmean_ref = mean(tmean, na.rm = TRUE)) %>%
+  left_join(ace_data %>%
+              filter(year == 2024) %>%
+              group_by(month, day) %>%
+              summarise(tmean24 = mean(tmean, na.rm = TRUE)),
+            by = c("month", "day")) %>%
+  mutate(month_day = make_date(month = month, day = day),
+         tmean_diff = tmean24 - tmean_ref,
+         red_max = if_else(tmean_diff > 0,
+                           tmean24,
+                           NA),
+         red_min = if_else(tmean_diff > 0,
+                           tmean_ref,
+                           NA),
+         blue_max = if_else(tmean_diff < 0,
+                            tmean_ref,
+                            NA),
+         blue_min = if_else(tmean_diff < 0,
+                            tmean24,
+                            NA)) %>%
+  ggplot(aes(x = month_day)) +
+  geom_ribbon(aes(ymin = blue_min, ymax = blue_max),
+              fill = "blue", alpha = 0.25) +
+  geom_ribbon(aes(ymin = red_min, ymax = red_max),
+              fill = "red", alpha = 0.25) +
+  geom_line(aes(y = tmean_ref),
+            colour = "#313695", linewidth = 1.2) +
+  geom_line(aes(y = tmean24),
+            colour = "#a50026", linewidth = 1.2) +
+  scale_x_continuous(breaks = c(1, yday("1970-02-01"), yday("1970-03-01"),
+                                yday("1970-04-01"), yday("1970-05-01"), yday("1970-06-01"),
+                                yday("1970-07-01"), yday("1970-08-01"), yday("1970-09-01"),
+                                yday("1970-10-01"), yday("1970-11-01"), yday("1970-12-01"),
+                                yday("1970-12-31")),
+                     labels = c(paste0("1-", month.abb), "31-Dec")) +
+  labs(title = "Daily mean temperature deviations in 2024 at Lanzarote Airport",
+       subtitle = "Comparison of <span style=color:#a50026>**2024**</span> (until 30-Sept) daily temperatures 
+       with the <span style=color:#313695>**1973-2000 reference period**</span>",
+       x = "Day",
+       y = "Mean temperature (°C)",
+       caption = "Data: Aemet.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_markdown(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
 
 
-
+# 2024 annual mean temperature (9 first months)
+ace_data %>%
+  filter(year > 1972,
+         month <= 9) %>%
+  group_by(year) %>%
+  summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
+  ggplot(aes(x = year, y = tmean)) +
+  geom_line(linewidth = 1.2, colour = "#1f78b4") +
+  geom_point(size = 3, colour = "#1f78b4") +
+  geom_label_repel(data = ~.x %>% filter(tmean == min(tmean)),
+                   aes(x = year, y = tmean, label = paste0(round(tmean, 2), "°C")),
+                   size = 3.5, nudge_x = 3, colour ="#313695", fontface = "bold") +
+  geom_label_repel(data = ~.x %>% filter(tmean == max(tmean)),
+                   aes(x = year, y = tmean, label = paste0(round(tmean, 2), "°C")),
+                   size = 3.5, nudge_x = -3, colour ="#a50026", fontface = "bold") +
+  scale_y_continuous(breaks = pretty_breaks(n = 10)) +
+  scale_x_continuous(breaks = seq(1975, 2020, 5)) +
+  labs(title = "Annual mean temperature of the first 9 months of the year at Lanzarote Airport",
+       subtitle = "Data from 1973 to 2024",
+       x = "Year",
+       y = "Mean temperature (°C)",
+       caption = "Data: Aemet.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
 
 
 
