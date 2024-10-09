@@ -5,6 +5,8 @@ library(htmltools)
 library(ggtext)
 library(ggrepel)
 library(scales)
+library(reactable)
+library(reactablefmtr)
 
 
 # Q1: What is the evolution of the annual mean temperature?
@@ -147,7 +149,7 @@ ace_data %>%
 
 
 
-# temperature calendar
+# maximum temperature calendar
 ace_data %>%
   filter(year == 2023) %>%
   mutate(weekday = wday(date, label = TRUE, week_start = 1),
@@ -161,10 +163,10 @@ ace_data %>%
   geom_tile(colour = "white", size = 0.4) +
   geom_text(aes(label = day), size = 2.5) +
   scale_fill_manual(values = c("white", "#ffffcc", "yellow", "orange", "red"),
-                    labels = c("<30°C", "30-34°C", "34-37°C", "37-40°C", ">40°C"),
+                    labels = c("≤30°C", "30-34°C", "34-37°C", "37-40°C", ">40°C"),
                     guide = guide_legend(title.position = "top",
                                          override.aes = list(colour = "black"))) +
-  labs(title = "Daily maximum temperatures \nthroughout the year 2023",
+  labs(title = "Daily maximum temperatures throughout the year 2023",
        subtitle = "Lanzarote Airport data",
        caption = "Data: Aemet.",
        fill = "Tmax") +
@@ -186,7 +188,72 @@ ace_data %>%
         legend.margin = margin(l = 10),
         panel.border = element_rect(colour = "grey", fill = NA, linewidth = 1)) +
   facet_wrap(vars(month), nrow = 4, ncol = 3, scales = "free")
-  
+
+
+ace_data %>%
+  filter(year == 2023) %>%
+  summarise(t30_34 = sum(tmax > 30 & tmax <= 34),
+            t34_37 = sum(tmax > 34 & tmax <= 37),
+            t37_40 = sum(tmax > 37 & tmax <= 40),
+            t40plus = sum(tmax > 40)) %>%
+  pivot_longer(cols = everything(), 
+               names_to = "tmax", 
+               values_to = "y2023") %>%
+  left_join(ace_data %>%
+              filter(year > 1972 & year < 2001) %>%
+              group_by(year) %>%
+              summarise(t30_34 = sum(tmax > 30 & tmax <= 34),
+                        t34_37 = sum(tmax > 34 & tmax <= 37),
+                        t37_40 = sum(tmax > 37 & tmax <= 40),
+                        t40plus = sum(tmax > 40)) %>%
+              summarise(across(starts_with("t"), \(x) round(mean(x, na.rm = TRUE), 2))) %>%
+              pivot_longer(cols = everything(),
+                           names_to = "tmax",
+                           values_to = "ref_period"),
+            by = "tmax") %>%
+  reactable(fullWidth = FALSE,
+            pagination = FALSE,
+            defaultColDef = colDef(
+              headerStyle = list(
+                background = "#67000d",
+                color = "#f0f0f0",
+                align = "center",
+                fontWeight = "bold",
+                borderBottom = "1px solid #f0f0f0"
+              ),
+              align = "center",
+              style = list(
+                #fontWeight = "bold"
+              )),
+            columns = list(
+              tmax = colDef(
+                name = "Temperature",
+                minWidth = 120,
+                align = "left",
+                cell = function(value){
+                  if(value == "t30_34"){
+                    value <- ">30-34°C"
+                  } else if(value == "t34_37"){
+                    value <- ">34-37°C"
+                  } else if(value == "t37_40"){
+                    value <- ">37-40°C"
+                  } else{
+                    value <- ">40°C"
+                  }
+                }
+              ),
+              y2023 = colDef(
+                name = "2023"),
+              ref_period = colDef(
+                name = "1973-2000"
+              )
+            ),
+            theme = reactableTheme(
+              borderColor = "#e0e0e0",
+              cellPadding = "8px",
+              fontFamily = "Arial"
+            ))
+
 
 
 
