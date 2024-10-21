@@ -1,3 +1,13 @@
+---
+title: "A look at the last 50 years of temperature and precipitation data in Lanzarote."
+author: "Oliver Q.R."
+format: html
+code-fold: true
+editor: visual
+---
+
+```{r, echo=FALSE, warning=FALSE, output=FALSE}
+
 # packages
 library(tidyverse)
 library(extrafont)
@@ -14,12 +24,17 @@ library(cowplot)
 
 # importing data
 ace_data <- read.csv("1_Data/aemet_ace_data_tidy.csv")
+```
 
+# A look at the last 50 years of temperature and precipitation data in Lanzarote.
 
+Lanzarote is the northernmost and easternmost of the Canary Islands. Located 125 km off the coast of continental Africa, its subtropical climate is characterised by mild temperatures all year-round and little precipitation. Sometimes referred to the <i>island of eternal Spring</i>, Lanzarote's climate is classified as hot dessert climate according to the Köppen climate classification.
+
+```{r, fig.cap="<b>Figure 1.</b> Geographic location of Lanzarote and its airport."}
 # geographic location of Lanzarote
 europe_africa_map_data <- gisco_get_countries(year = "2024",
-                                              resolution = "03",
-                                              region = c("Africa", "Europe", "Asia"))
+                                         resolution = "03",
+                                         region = c("Africa", "Europe", "Asia"))
 
 
 
@@ -88,13 +103,17 @@ ggdraw(europe_africa_map) +
             x = 0.15,
             y = 0.11,
             height = 0.25)
+```
 
+Using Aemet's Open Data, I downloaded temperature and precipitation data from the last 50 years recorded at the station located at Lanzarote airport, with the aim of analysing possible trends over this period.
 
-ggsave("3_Graphs/Geographic_location_Lanzarote.png",
-       plot = last_plot())
+Before continuing, I would like to point out that Lanzarote, like other Canary Islands, is defined by having more than one microclimate. For example, the north and northwest areas are more exposed to the chilly oceanic <i>alisios</i> (trade winds) blowing from NE, making this part of the island a bit colder and slightly more humid than areas to the south and southeast. However, due to the relatively low altitude of Lanzarote, the difference between the microclimates in this island is not as big as in other islands with higher mountains (like Tenerife or La Palma, for example).
 
+## Temperature.
 
-# Q1: What is the evolution of the annual mean temperature?
+With that in mind, let's start by having a look at annual mean temperatures over the last 50 years. As seen in figure 2, there is a long-term warming trend, similar to what is happening worldwide. The mean annual temperature has increased \~3°C in the last 50 years, with 2023 marking the warmest year on record (22.71°C).
+
+```{r, fig.cap="<b>Figure 2.</b> Annual mean temperature over the last 50 years."}
 ace_data %>%
   filter(year > 1972 & year < 2024) %>%
   group_by(year) %>%
@@ -123,12 +142,15 @@ ace_data %>%
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
+```
 
-ggsave("3_Graphs/Annual temperature.png",
-       plot = last_plot())
+To find the coldest year in this period, we have to go as far back as 1974, which had a mean temperature of 19.65°C. This year, together with 1973 and 1975 are the only years with a mean temperature below 20°C in the last 50 years. As we move forward in time to more recent years, annual mean temperatures go above 20, 21 and even 22°C, as we can see for 2022 and 2023. In fact, except the years 2018 and 2019, most of the recent years have seen mean temperatures around or above 21.5°C.
 
+If we use the period 1981-2010 as a reference, we can see most of the positive temperature anomalies in recent years, with 2023 having the largest anomaly (+1.58°C). In contrast, most of the years with negative temperature anomalies are in the 70s, 80s and early 90s.
 
-# yearly temperature anomalies
+```{r, fig.cap="<b>Figure 3.</b> Annual mean temperature anomalies."}
+
+# mean temperature for the reference period (1981-2010)
 ref_tmean <- ace_data %>%
   filter(year > 1980 & year < 2011) %>%
   summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
@@ -179,12 +201,13 @@ ace_data %>%
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
+```
 
-ggsave("3_Graphs/Temp anomalies.png",
-       plot = last_plot())
+Out of the last 20 years, only 2005 and 2018 had a mild negative temperature anomaly (-0.04 and -0.26°C, respectively). The other 18 years in this period had positive temperature anomalies, with 2010, 2022 and 2023 having anomalies above 1°C.
 
+If we look at the mean temperature by decade, we can see a significant increase in the mean temperature, following almost a linear path (0.3-0.4°C increase per decade) in the last 30 years. The 1970s (data from 1973 to 1979, no data for the period 1970-1972) were the coldest period (20°C), whereas the 2020s are the warmest period so far (22.1°C).
 
-# mean temperature by decade
+```{r, fig.cap="<b>Figure 4.</b> Mean temperature by decade."}
 ace_data %>%
   filter(year > 1972 & year < 2024) %>%
   mutate(decade = 10 * floor(year / 10)) %>%
@@ -210,11 +233,125 @@ ace_data %>%
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
+```
 
-ggsave("3_Graphs/Mean temperature by decade.png",
-       plot = last_plot())
+An interesting observation is that the mean temperature of the period 2020-2023 is already 0.4°C warmer than that of the 2010s decade. If we look at the trend of annual mean temperatures, it wouldn't be surprising if this increase becomes more significant by the end of the decade (exceeding even the 0.8°C increase observed between the 1970s and 1980s).
 
+```{r, fig.cap="<b>Figure 5.</b> Mean temperature by month and decade."}
+# mean temperature by month and decade
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  mutate(decade = factor(as.character(10 * floor(year / 10)),
+                         levels = as.character(seq(1970, 2020, 10)))) %>%
+  group_by(decade, month) %>%
+  summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
+  ggplot(aes(x = month, y = tmean, group = decade, colour = decade, shape = decade)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 4) +
+  scale_x_continuous(breaks = 1:12,
+                     labels = month.abb) +
+  scale_y_continuous(breaks = pretty_breaks(n = 7)) +
+  scale_colour_manual(values = c("#313695", "#74add1", "#abd9e9", "#fee090", "#f46d43", "#a50026")) +
+  scale_shape_manual(values = 20:15) +
+  labs(title = "Monthly mean temperature by decade at Lanzarote Airport",
+       subtitle = "Data from 1973 to 2023",
+       x = "Month",
+       y = "Temperature (°C)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.",
+       colour = "Decade",
+       shape = "Decade") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+```
 
+If we look at how the monthly mean temperature has changed by decade, we can see an increase for all months of the year. In general, spring and summer months are the ones with a higher increase in mean temperature, with June, May and April having an average temperature over 2.5°C higher in the 2020s than in the 1970s. Another month that has experienced a significant increase is October, with 2.64°C.
+
+```{r, fig.cap="<b>Table 1.</b> Monthly mean temperatures by decade."}
+# mean temperature by month and decade
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  mutate(decade = factor(as.character(10 * floor(year / 10)),
+                         levels = as.character(seq(1970, 2020, 10)))) %>%
+  group_by(decade, month) %>%
+  summarise(tmean = round(mean(tmean, na.rm = TRUE), 2)) %>%
+  pivot_wider(names_from = decade, values_from = tmean, names_prefix = "d") %>%
+  mutate(month = month.name,
+         tdiff = d2020 - d1970) %>%
+  reactable(fullWidth = FALSE,
+            pagination = FALSE,
+            bordered = FALSE,
+            sortable = FALSE,
+            defaultColDef = colDef(
+              headerStyle = list(
+                background = "#1f78b4",
+                color = "#f0f0f0",
+                align = "center",
+                fontWeight = "bold",
+                borderBottom = "1px solid #f0f0f0"
+              ),
+              align = "center",
+              style = list(
+                fontFamily = "Arial"
+              )
+            ),
+            columns = list(
+              month = colDef(name = "Month"),
+              d1970 = colDef(name = "1970s"),
+              d1980 = colDef(name = "1980s"),
+              d1990 = colDef(name = "1990s"),
+              d2000 = colDef(name = "2000s"),
+              d2010 = colDef(name = "2010s"),
+              d2020 = colDef(name = "2020s"),
+              tdiff = colDef(name = "Variation",
+                             style = function(value){
+                               if(value < 0){
+                                 list(background = "#eff3ff")
+                               } else if(value >= 0 & value < 0.5){
+                                 list(background = "white")
+                               } else if(value >= 0.5 & value < 1){
+                                 list(background = "#fee5d9")
+                               } else if(value >= 1 & value < 1.5){
+                                 list(background = "#fcbba1",
+                                      fontWeight = "bold")
+                               } else if(value >= 1.5 & value < 2){
+                                 list(background = "#fc9272",
+                                      fontWeight = "bold")
+                               } else if(value >= 2 & value < 2.5){
+                                 list(background = "#fb6a4a",
+                                      color = "white",
+                                      fontWeight = "bold")
+                               } else if(value >= 2.5 & value < 3){
+                                 list(background = "#de2d26",
+                                      color = "white",
+                                      fontWeight = "bold")
+                               } else {
+                                 list(background = "#a50f15",
+                                      color = "white",
+                                      fontWeight = "bold")
+                               }
+                             })
+            )) %>%
+  add_source(source = html("Data: Aemet.<br>Made by Oliver Q.R."),
+             font_size = 14,
+             font_style = "italic",
+             font_color = "grey50",
+             align = "left",
+             margin = margin(t = 10))
+```
+
+## Precipitation.
+
+Lanzarote is an island with scarce precipitation that falls mainly during winter. Also, if we go to the history books, we can easily see that the precipitation over the years follows an irregular pattern, combining few years with relatively high amount (considering the average) with years with very little precipitation. And this is something we can also see in the last 50 years.
+
+```{r, fig.cap="<b>Figure 6.</b> Annual total precipitation per year."}
 
 # annual precipitation
 ace_data %>%
@@ -246,13 +383,13 @@ ace_data %>%
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
+```
 
+With such an irregular pattern, it is difficult to spot a trend. What we can see is the notable variability in the amount of rain registered. As expected, there are years with wet conditions (like 1989, with the highest amount of rain in the last 50 years: 298.2 mm) and years with dry conditions, like 2023 (39.5 mm; the lowest amount registered in the last 50 years).
 
-ggsave("3_Graphs/Annual precipitation.png",
-       plot = last_plot())
+Looking at precipitation anomalies in comparison with the reference period 1981-2010, we can see a wetter period in the late 80s-early 90s with 5 consecutive years having a positive rain anomaly, with 1989 having the largest positive anomaly (+169.55%).
 
-
-
+```{r, fig.cap="<b>Figure 7.</b> Precipitation anomaly by year."}
 # yearly precipitation anomalies (reference period: 1981-2010)
 ref_prec <- ace_data %>%
   filter(year > 1980 & year < 2011) %>%
@@ -300,147 +437,8 @@ ace_data %>%
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
+```
 
+If we look at recent years, 4 of the last 5 years have a negative anomaly, with 2023 being the driest of all years in the series (-64.3%). It looks like the current is a dry period, in contrast to the period 1987-1991, and similar to the period 1997-2003 (and possibly the period before 1979).
 
-ggsave("3_Graphs/Prec anomalies.png",
-       plot = last_plot())
-
-
-# mean temperature by month and decade
-ace_data %>%
-  filter(year > 1972 & year < 2024) %>%
-  mutate(decade = factor(as.character(10 * floor(year / 10)),
-                         levels = as.character(seq(1970, 2020, 10)))) %>%
-  group_by(decade, month) %>%
-  summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
-  ggplot(aes(x = month, y = tmean, group = decade, colour = decade, shape = decade)) +
-  geom_line(linewidth = 1.2) +
-  geom_point(size = 4) +
-  scale_x_continuous(breaks = 1:12,
-                     labels = month.abb) +
-  scale_y_continuous(breaks = pretty_breaks(n = 7)) +
-  scale_colour_manual(values = c("#313695", "#74add1", "#abd9e9", "#fee090", "#f46d43", "#a50026")) +
-  scale_shape_manual(values = 20:15) +
-  labs(title = "Monthly mean temperature by decade at Lanzarote Airport",
-       subtitle = "Data from 1973 to 2023",
-       x = "Month",
-       y = "Temperature (°C)",
-       caption = "Data: Aemet.\nMade by Oliver Q.R.",
-       colour = "Decade",
-       shape = "Decade") +
-  theme_bw(base_family = "Arial") +
-  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
-        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
-        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
-        legend.title = element_text(size = 12, face = "bold"),
-        legend.text = element_text(size = 10),
-        axis.title = element_text(face = "bold", colour = "#003080"),
-        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
-        panel.grid.major = element_line(colour = "grey90"),
-        panel.grid.minor = element_blank())
-
-
-ggsave("3_Graphs/Monthly mean temp by decade.png",
-       plot = last_plot())
-
-
-# annual precipitation
-ace_data %>%
-  filter(year > 1972 & year < 2024) %>%
-  group_by(year) %>%
-  summarise(prec = sum(prec, na.rm = TRUE)) %>%
-  ggplot(aes(x = year, y = prec)) +
-  geom_col(fill = "darkblue") +
-  geom_label_repel(data = ~.x %>% filter(prec == min(prec)),
-                   aes(x = year, y = prec, label = paste(prec, "mm", sep = " ")),
-                   size = 3.5, nudge_y = 120, colour ="red", fontface = "bold") +
-  geom_label_repel(data = ~.x %>% filter(prec == max(prec)),
-                   aes(x = year, y = prec, label = paste(prec, "mm", sep = " ")),
-                   size = 3.5, nudge_x = 1, nudge_y = 10, colour ="blue", fontface = "bold") +
-  scale_y_continuous(breaks = pretty_breaks(n = 7),
-                     expand = expansion(mult = c(0, 0.1))) +
-  scale_x_continuous(breaks = seq(1975, 2020, 5),
-                     expand = c(0.01, 0.01)) +
-  labs(title = "Annual precipitation at Lanzarote Airport",
-       subtitle = "Data from 1973 to 2023",
-       x = "Year",
-       y = "mm",
-       caption = "Data: Aemet.\nMade by Oliver Q.R.") +
-  theme_bw(base_family = "Arial") +
-  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
-        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
-        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
-        axis.title = element_text(face = "bold", colour = "#003080"),
-        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
-        panel.grid.major = element_line(colour = "grey90"),
-        panel.grid.minor = element_blank())
-
-
-ggsave("3_Graphs/Annual precipitation.png",
-       plot = last_plot())
-
-
-# yearly precipitation anomalies (reference period: 1981-2010)
-ref_prec <- ace_data %>%
-  filter(year > 1980 & year < 2011) %>%
-  group_by(year) %>%
-  summarise(prec = sum(prec, na.rm = TRUE)) %>%
-  summarise(prec = mean(prec, na.rm = TRUE)) %>%
-  pull()
-
-
-ace_data %>%
-  filter(year > 1972 & year < 2024) %>%
-  group_by(year) %>%
-  summarise(prec = sum(prec, na.rm = TRUE)) %>%
-  mutate(prec_an = (100 * prec / ref_prec) - 100) %>%
-  ggplot(aes(x = year, y = prec_an, fill = prec_an)) +
-  geom_col(colour = "#333333") +
-  geom_label_repel(data = ~.x %>% filter(prec_an == min(prec_an)),
-                   aes(x = year, y = prec_an, label = paste0(round(prec_an, 2), "%")),
-                   size = 3.5, nudge_x = -0.5, nudge_y = -15, fill = "white",
-                   colour = "#67001f", fontface = "bold") +
-  geom_label_repel(data = ~.x %>% filter(prec_an == max(prec_an)),
-                   aes(x = year, y = prec_an, 
-                       label = paste0("+", round(prec_an, 2), "%")),
-                   size = 3.5, nudge_x = 1, nudge_y = 1, fill = "white",
-                   colour = "darkblue", fontface = "bold") +
-  scale_x_continuous(breaks = seq(1975, 2020, 5)) +
-  scale_y_continuous(limits = c(-200, 200),
-                     breaks = pretty_breaks(n = 9)) +
-  scale_fill_gradient2(low = "#9e0142", mid = "#f7f7f7", high = "#5e4fa2",
-                       midpoint = 0,
-                       limits = c(-200, 200)) +
-  labs(title = "Annual precipitation anomalies at Lanzarote Airport",
-       subtitle = "Deviations from the annual mean precipitation for the period 1973-2000",
-       x = "Year",
-       y = "Precipitation anomaly (%)",
-       caption = "Data: Aemet.\nMade by Oliver Q.R.",
-       fill = "mm") +
-  theme_bw(base_family = "Arial") +
-  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
-        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
-        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
-        legend.title = element_text(size = 12, face = "bold"),
-        legend.text = element_text(size = 10),
-        axis.title = element_text(face = "bold", colour = "#003080"),
-        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
-        panel.grid.major = element_line(colour = "grey90"),
-        panel.grid.minor = element_blank())
-
-
-ggsave("3_Graphs/Prec anomalies.png",
-       plot = last_plot())
-
-
-
-
-
-
-
-
-
-
-
-
-
+## 2023: the warmest and drier year on record.
