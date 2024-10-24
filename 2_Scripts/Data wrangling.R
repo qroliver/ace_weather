@@ -19,6 +19,16 @@ head(ace_data_raw)
 tail(ace_data_raw)
 
 
+# missing data
+ace_data_raw %>%
+  summarise_all(~sum(is.na(.))) %>%
+  pivot_longer(cols = everything(),
+               names_to = "variable",
+               values_to = "missing_values") %>%
+  arrange(desc(missing_values)) %>%
+  print(n = nrow(.))
+
+
 # data wrangling
 ace_data <- ace_data_raw %>%
   # renaming columns (to English)
