@@ -1,2 +1,1 @@
-# ace_weather
- Analysis of temperature and precipitation in Lanzarote (ACE airport)
+For further information, please go to https://qroliver.github.io/posts/ace_weather
