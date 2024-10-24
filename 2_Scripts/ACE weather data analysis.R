@@ -119,7 +119,9 @@ ace_data %>%
   theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
         plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
@@ -175,7 +177,9 @@ ace_data %>%
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
         legend.title = element_text(size = 12, face = "bold"),
         legend.text = element_text(size = 10),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
@@ -206,13 +210,159 @@ ace_data %>%
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
         legend.title = element_text(size = 12, face = "bold"),
         legend.text = element_text(size = 10),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
 
 ggsave("3_Graphs/Mean temperature by decade.png",
        plot = last_plot())
+
+
+# monthly mean temperature by decade
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  mutate(decade = factor(paste0(10 * floor(year / 10), "s"),
+                         levels = paste0(seq(1970, 2020, 10), "s"))) %>%
+  group_by(decade, month) %>%
+  summarise(tmean = mean(tmean, na.rm = TRUE), .groups = "drop") %>%
+  ggplot(aes(x = month, y = tmean, group = decade, colour = decade, shape = decade)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 4) +
+  scale_x_continuous(breaks = 1:12,
+                     labels = month.abb) +
+  scale_y_continuous(breaks = pretty_breaks(n = 7)) +
+  scale_colour_manual(values = c("#313695", "#74add1", "#abd9e9", "#fee090", "#f46d43", "#a50026")) +
+  scale_shape_manual(values = 20:15) +
+  labs(title = "Monthly mean temperature by decade at Lanzarote Airport",
+       subtitle = "Data from 1973 to 2023",
+       x = "Month",
+       y = "Temperature (°C)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.",
+       colour = "Decade",
+       shape = "Decade") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+
+ggsave("3_Graphs/Monthly mean temp by decade.png",
+       plot = last_plot())
+
+
+
+# mean temperature by month and decade
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  mutate(decade = factor(as.character(10 * floor(year / 10)),
+                         levels = as.character(seq(1970, 2020, 10)))) %>%
+  group_by(decade, month) %>%
+  summarise(tmean = round(mean(tmean, na.rm = TRUE), 2), .groups = "drop") %>%
+  pivot_wider(names_from = decade, values_from = tmean, names_prefix = "d") %>%
+  mutate(month = month.name,
+         tdiff = d2020 - d1970) %>%
+  reactable(fullWidth = FALSE,
+            pagination = FALSE,
+            bordered = TRUE,
+            sortable = FALSE,
+            defaultColDef = colDef(
+              headerStyle = list(
+                background = "#1f78b4",
+                color = "#f0f0f0",
+                align = "center",
+                fontWeight = "bold",
+                fontSize = 18,
+                borderBottom = "1px solid #f0f0f0",
+                padding = "3px"
+              ),
+              align = "center",
+              style = list(
+                fontFamily = "Arial",
+                padding = "3px"
+              ),
+              minWidth = 120
+            ),
+            columns = list(
+              month = colDef(name = "Month"),
+              d1970 = colDef(name = "1970s"),
+              d1980 = colDef(name = "1980s"),
+              d1990 = colDef(name = "1990s"),
+              d2000 = colDef(name = "2000s"),
+              d2010 = colDef(name = "2010s"),
+              d2020 = colDef(name = "2020s"),
+              tdiff = colDef(name = "Variation",
+                             style = function(value){
+                               if(value < 0){
+                                 list(background = "#eff3ff",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               } else if(value >= 0 & value < 0.5){
+                                 list(background = "white",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               } else if(value >= 0.5 & value < 1){
+                                 list(background = "#fee5d9",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               } else if(value >= 1 & value < 1.5){
+                                 list(background = "#fcbba1",
+                                      fontWeight = "bold",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               } else if(value >= 1.5 & value < 2){
+                                 list(background = "#fc9272",
+                                      fontWeight = "bold",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               } else if(value >= 2 & value < 2.5){
+                                 list(background = "#fb6a4a",
+                                      color = "white",
+                                      fontWeight = "bold",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               } else if(value >= 2.5 & value < 3){
+                                 list(background = "#de2d26",
+                                      color = "white",
+                                      fontWeight = "bold",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               } else {
+                                 list(background = "#a50f15",
+                                      color = "white",
+                                      fontWeight = "bold",
+                                      fontFamily = "Arial",
+                                      padding = "3px",
+                                      vAlign = "center")
+                               }
+                             },
+                             cell = function(value){
+                               paste0("+", value)
+                             })
+            )) %>%
+  add_source(source = html("Data: Aemet.<br>Made by Oliver Q.R."),
+             font_size = 14,
+             font_style = "italic",
+             font_color = "grey50",
+             align = "left",
+             margin = margin(t = 10))
 
 
 
@@ -242,7 +392,9 @@ ace_data %>%
   theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
         plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
@@ -296,7 +448,9 @@ ace_data %>%
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
         legend.title = element_text(size = 12, face = "bold"),
         legend.text = element_text(size = 10),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
@@ -334,7 +488,9 @@ ace_data %>%
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
         legend.title = element_text(size = 12, face = "bold"),
         legend.text = element_text(size = 10),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
@@ -370,7 +526,9 @@ ace_data %>%
   theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
         plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
@@ -423,7 +581,9 @@ ace_data %>%
         plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
         legend.title = element_text(size = 12, face = "bold"),
         legend.text = element_text(size = 10),
-        axis.title = element_text(face = "bold", colour = "#003080"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
@@ -434,12 +594,478 @@ ggsave("3_Graphs/Prec anomalies.png",
 
 
 
+# year classification according to mean temperature and precipitation anomalies
+ace_data %>%
+  filter(year > 1972 & year < 2024) %>%
+  group_by(year) %>%
+  summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
+  mutate(tmean_an = tmean - ref_tmean) %>%
+  left_join(ace_data %>%
+              filter(year > 1972 & year < 2024) %>%
+              group_by(year) %>%
+              summarise(prec = sum(prec, na.rm = TRUE)) %>%
+              mutate(prec_an = (100 * prec / ref_prec) - 100),
+            by = "year") %>%
+  mutate(decade = as.character(10 * floor(year / 10))) %>%
+  ggplot(aes(x = prec_an, y = tmean_an, shape = decade)) +
+  geom_rect(aes(xmin = -120, xmax = 0, ymin = -2, ymax = 0),
+            fill = "#a6cee3", alpha = 0.1) +
+  geom_rect(aes(xmin = 0, xmax = 200, ymin = -2, ymax = 0),
+            fill = "#1f78b4", alpha = 0.1) +
+  geom_rect(aes(xmin = 0, xmax = 200, ymin = 0, ymax = 2.5),
+            fill = "#d73027", alpha = 0.1) +
+  geom_rect(aes(xmin = -120, xmax = 0, ymin = 0, ymax = 2.5),
+            fill = "#fdae61", alpha = 0.1) +
+  annotate(geom = "text", label = "Colder\nDrier", x = -115, y = -1.75, colour = "white",
+           hjust = "left", fontface = "bold") +
+  annotate(geom = "text", label = "Colder\nWetter", x = 195, y = -1.75, colour = "white",
+           hjust = "right", fontface = "bold") +
+  annotate(geom = "text", label = "Warmer\nWetter", x = 195, y = 2.25, colour = "white",
+           hjust = "right", fontface = "bold") +
+  annotate(geom = "text", label = "Warmer\nDrier", x = -115, y = 2.25, colour = "white",
+           hjust = "left", fontface = "bold") +
+  geom_label_repel(data = ~.x %>% filter(year == 2023),
+                   aes(label = year), fontface = "bold") +
+  geom_point(size = 3) +
+  scale_x_continuous(limits = c(-120, 200),
+                     expand = c(0, 0)) +
+  scale_y_continuous(limits = c(-2, 2.5),
+                     expand = c(0, 0)) +
+  scale_shape_manual(values = 20:15) +
+  labs(title = "Temperature and precipitation anomalies at Lanzarote airport",
+       subtitle = "Data from 1973-2023. Reference period: 1973-2000",
+       x = "Precipitation anomaly (%)",
+       y = "Temperature anomaly (°C)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.",
+       shape = "Decade") +
+  theme_bw(base_family = "sans") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+
+ggsave("3_Graphs/Prec temp anomalies.png",
+       plot = last_plot())
+
+
+# year 2023 daily mean temperature
+ace_data %>%
+  filter(year > 1980 & year < 2011) %>%
+  group_by(month, day) %>%
+  summarise(tmean_ref = mean(tmean, na.rm = TRUE)) %>%
+  right_join(ace_data %>%
+               filter(year == 2023) %>%
+               select(month, day, tmean),
+             by = c("month", "day")) %>%
+  mutate(tmean_diff = tmean - tmean_ref,
+         red_max = if_else(tmean_diff > 0,
+                           tmean,
+                           NA),
+         red_min = if_else(tmean_diff > 0,
+                           tmean_ref,
+                           NA),
+         blue_max = if_else(tmean_diff < 0,
+                            tmean_ref,
+                            NA),
+         blue_min = if_else(tmean_diff < 0,
+                            tmean,
+                            NA),
+         day_month = make_date(month = month, day = day)) %>%
+  ggplot(aes(x = day_month)) +
+  geom_ribbon(aes(ymin = blue_min, ymax = blue_max),
+              fill = "blue", alpha = 0.25) +
+  geom_ribbon(aes(ymin = red_min, ymax = red_max),
+              fill = "red", alpha = 0.25) +
+  geom_line(aes(y = tmean_ref), colour = "#313695", linewidth = 1.2) +
+  geom_line(aes(y = tmean), colour = "#a50026", linewidth = 1.2) +
+  scale_x_continuous(breaks = c(1, yday("1970-02-01"), yday("1970-03-01"),
+                                yday("1970-04-01"), yday("1970-05-01"), yday("1970-06-01"),
+                                yday("1970-07-01"), yday("1970-08-01"), yday("1970-09-01"),
+                                yday("1970-10-01"), yday("1970-11-01"), yday("1970-12-01"),
+                                yday("1970-12-31")),
+                     labels = c(paste0("1-", month.abb), "31-Dec")) +
+  labs(title = "Daily mean temperature deviations in 2023 at Lanzarote Airport",
+       subtitle = "Comparison of <span style=color:#a50026>**2023**</span> daily temperatures 
+       with the <span style=color:#313695>**1981-2010 reference period**</span>",
+       x = "Day",
+       y = "Mean temperature (°C)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_markdown(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+
+ggsave("3_Graphs/Temp2023_day_by_day.png",
+       plot = last_plot())
+
+
+# monthly precipitation
+ace_data %>%
+  filter(year == 2023) %>%
+  group_by(month) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  left_join(ace_data %>%
+              filter(year > 1980 & year < 2011) %>%
+              group_by(month, year) %>%
+              summarise(prec_ref = sum(prec, na.rm = TRUE)) %>%
+              group_by(month) %>%
+              summarise(prec_ref = mean(prec_ref, na.rm = TRUE)),
+            by = "month") %>%
+  pivot_longer(cols = starts_with("prec"),
+               names_to = "period",
+               values_to = "prec_mm") %>%
+  ggplot(aes(x = month, y = prec_mm, fill = period)) +
+  geom_col(position = "dodge",
+           colour = "#333333") +
+  scale_x_continuous(breaks = 1:12,
+                     labels = month.abb,
+                     expand = c(0.01, 0.01)) +
+  scale_y_continuous(breaks = pretty_breaks(n = 6),
+                     expand = expansion(mult = c(0, 0.1))) +
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4"),
+                    labels = c("2023", "1981-2010"),
+                    name = "Period") +
+  labs(title = "Monthly precipitation in 2023 vs. the reference period",
+       subtitle = "Reference period: 1981-2010",
+       x = "Month",
+       y = "Precipitation (mm)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+
+ggsave("3_Graphs/Monthly prec 2023.png",
+       plot = last_plot())
 
 
 
+# 2024 annual mean temperature (first 9 months)
+ace_data %>%
+  filter(year > 1980 & year < 2011,
+         month <= 9) %>%
+  group_by(year) %>%
+  summarise(tmean = mean(tmean, na.rm = TRUE)) %>%
+  summarise(tmean_ref = mean(tmean, na.rm = TRUE)) %>%
+  bind_cols(ace_data %>%
+              filter(year == 2023,
+                     month <= 9) %>%
+              summarise(tmean23 = mean(tmean, na.rm = TRUE)),
+            ace_data %>%
+              filter(year == 2024,
+                     month <= 9) %>%
+              summarise(tmean24 = mean(tmean, na.rm = TRUE))) %>%
+  pivot_longer(cols = everything(),
+               names_to = "period", values_to = "tmean") %>%
+  ggplot(aes(x = period, y = tmean, fill = period)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(y = tmean, label = paste0(round(tmean, 2), "°C")), 
+            vjust = 2, fontface = "bold", colour = "white") +
+  scale_y_continuous(breaks = pretty_breaks(n = 8),
+                     expand = expansion(mult = c(0, 0.1))) +
+  scale_x_discrete(labels = c("reference", "2023", "2024")) +
+  scale_fill_manual(values = c("#1f78b4", "#a50026", "#f46d43")) +
+  labs(title = "Annual mean temperature at Lanzarote Airport (Jan to Sept)",
+       subtitle = "Reference period: 1981-2010",
+       x = "Year",
+       y = "Mean temperature (°C)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none")
+
+
+ggsave("3_Graphs/Mean temp 2024.png",
+       plot = last_plot())
 
 
 
+# Warmest years (first 9 months)
+ace_data %>%
+  filter(year > 1972, month <= 9) %>%
+  group_by(year) %>%
+  summarise(tmean = round(mean(tmean, na.rm = TRUE), 2)) %>%
+  arrange(desc(tmean)) %>%
+  slice_head(n = 10) %>%
+  reactable(fullWidth = FALSE,
+            pagination = FALSE,
+            bordered = TRUE,
+            sortable = FALSE,
+            defaultColDef = colDef(
+              headerStyle = list(
+                background = "#ffcc99",
+                color = "black",
+                align = "center",
+                fontWeight = "bold",
+                fontSize = 18,
+                borderbottom = "1px solid #f0f0f0",
+                padding = "6px"
+              ),
+              align = "center",
+              headerVAlign = "center",
+              style = list(
+                fontFamily = "Arial",
+                padding = "6px"
+              )
+            ),
+            columns = list(
+              year = colDef(name = "Year"),
+              tmean = colDef(name = "Tmean (°C)")
+            ),
+            rowStyle = function(index){
+              if(.$year[index] == 2024){
+                list(background = "#ffffcc", fontWeight = "bold")
+              }
+            }) %>%
+  add_source(source = html("Data: Aemet.<br>Made by Oliver Q.R."),
+             font_size = 14,
+             font_style = "italic",
+             font_color = "grey50",
+             align = "left",
+             margin = margin(t = 10))
+
+
+
+# 2024 daily mean temperature (first 9 months)
+ace_data %>%
+  filter(year > 1980 & year < 2011) %>%
+  group_by(month, day) %>%
+  summarise(tmean_ref = mean(tmean, na.rm = TRUE)) %>%
+  left_join(ace_data %>%
+              filter(year == 2024,
+                     month <= 9) %>%
+              group_by(month, day) %>%
+              summarise(tmean24 = mean(tmean, na.rm = TRUE)),
+            by = c("month", "day")) %>%
+  mutate(month_day = make_date(month = month, day = day),
+         tmean_diff = tmean24 - tmean_ref,
+         red_max = if_else(tmean_diff > 0,
+                           tmean24,
+                           NA),
+         red_min = if_else(tmean_diff > 0,
+                           tmean_ref,
+                           NA),
+         blue_max = if_else(tmean_diff < 0,
+                            tmean_ref,
+                            NA),
+         blue_min = if_else(tmean_diff < 0,
+                            tmean24,
+                            NA)) %>%
+  ggplot(aes(x = month_day)) +
+  geom_ribbon(aes(ymin = blue_min, ymax = blue_max),
+              fill = "blue", alpha = 0.25) +
+  geom_ribbon(aes(ymin = red_min, ymax = red_max),
+              fill = "red", alpha = 0.25) +
+  geom_line(aes(y = tmean_ref),
+            colour = "#313695", linewidth = 1.2) +
+  geom_line(aes(y = tmean24),
+            colour = "#a50026", linewidth = 1.2) +
+  scale_x_continuous(breaks = c(1, yday("1970-02-01"), yday("1970-03-01"),
+                                yday("1970-04-01"), yday("1970-05-01"), yday("1970-06-01"),
+                                yday("1970-07-01"), yday("1970-08-01"), yday("1970-09-01"),
+                                yday("1970-10-01"), yday("1970-11-01"), yday("1970-12-01"),
+                                yday("1970-12-31")),
+                     labels = c(paste0("1-", month.abb), "31-Dec")) +
+  labs(title = "Daily mean temperature deviations in 2024 at Lanzarote Airport",
+       subtitle = "Comparison of <span style=color:#a50026>**2024**</span> (until 30-Sept) daily temperatures 
+       with the <span style=color:#313695>**1981-2010 reference period**</span>",
+       x = "Day",
+       y = "Mean temperature (°C)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_markdown(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+ggsave("3_Graphs/Daily mean temp 2024.png",
+       plot = last_plot())
+
+
+
+# Precipitation in the first 9 months of the year
+ace_data %>%
+  filter(year > 1980 & year < 2011,
+         month <= 9) %>%
+  group_by(year) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  summarise(prec_ref = mean(prec, na.rm = TRUE)) %>%
+  bind_cols(ace_data %>%
+              filter(year == 2023,
+                     month <= 9) %>%
+              summarise(prec_23 = sum(prec, na.rm = TRUE)),
+            ace_data %>%
+              filter(year == 2024,
+                     month <= 9) %>%
+              summarise(prec_24 = sum(prec, na.rm = TRUE))) %>%
+  pivot_longer(cols = everything(),
+               names_to = "period", values_to = "precipitation") %>%
+  mutate(period = factor(period, levels = c("prec_ref", "prec_23", "prec_24"))) %>%
+  ggplot(aes(x = period, y = precipitation, fill = period)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = round(precipitation, 2)),
+            vjust = 2, fontface = "bold", colour = "white") +
+  scale_y_continuous(breaks = pretty_breaks(n = 8),
+                     expand = expansion(mult = c(0, 0.1))) +
+  scale_x_discrete(labels = c("reference", "2023", "2024")) +
+  scale_fill_manual(values = c("#4575b4", "#f46d43", "#a50026")) +
+  labs(title = "Total rain in the first 9 months of the year at Lanzarote Airport",
+       subtitle = "Reference period: 1981-2010",
+       x = "Year",
+       y = "Precipitation (mm)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none")
+
+
+ggsave("3_Graphs/Total precipitation 2024.png",
+       plot = last_plot())
+
+
+
+# monthly precipitation in 2024 vs. the reference period
+ace_data %>%
+  filter(year == 2024,
+         month <= 9) %>%
+  group_by(month) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  left_join(ace_data %>%
+              filter(year > 1980 & year < 2011,
+                     month <= 9) %>%
+              group_by(month, year) %>%
+              summarise(prec_ref = sum(prec, na.rm = TRUE)) %>%
+              group_by(month) %>%
+              summarise(prec_ref = mean(prec_ref, na.rm = TRUE)),
+            by = "month") %>%
+  pivot_longer(cols = starts_with("prec"),
+               names_to = "period",
+               values_to = "prec_mm") %>%
+  ggplot(aes(x = month, y = prec_mm, fill = period)) +
+  geom_col(position = "dodge",
+           colour = "#333333") +
+  scale_x_continuous(breaks = 1:12,
+                     labels = month.abb,
+                     expand = c(0.01, 0.01)) +
+  scale_y_continuous(breaks = pretty_breaks(n = 6),
+                     expand = expansion(mult = c(0, 0.1))) +
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4"),
+                    labels = c("2024", "1981-2010"),
+                    name = "Period") +
+  labs(title = "Monthly precipitation in 2024 vs. the reference period",
+       subtitle = "Reference period: 1981-2010",
+       x = "Month",
+       y = "Precipitation (mm)",
+       caption = "Data: Aemet.\nMade by Oliver Q.R.") +
+  theme_bw(base_family = "Arial") +
+  theme(plot.title = element_text(face = "bold", size = 20, colour = "#003080"),
+        plot.subtitle = element_text(size = 14, colour = "#5a5a5a"),
+        plot.caption = element_text(size = 10, face = "italic", colour = "grey50"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold", colour = "#003080"),
+        axis.title.x = element_text(vjust = -2),
+        axis.title.y = element_text(vjust = 2),
+        axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
+        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank())
+
+
+ggsave("3_Graphs/Montly precipitation 2024.png",
+       plot = last_plot())
+
+
+
+# driest years from January to September
+ace_data %>%
+  filter(year > 1972, month <= 9) %>%
+  group_by(year) %>%
+  summarise(prec = sum(prec, na.rm = TRUE)) %>%
+  arrange(prec) %>%
+  slice_head(n = 10) %>%
+  reactable(fullWidth = FALSE,
+            pagination = FALSE,
+            bordered = TRUE,
+            sortable = FALSE,
+            defaultColDef = colDef(
+              headerStyle = list(
+                background = "#ffcc99",
+                color = "black",
+                align = "center",
+                fontWeight = "bold",
+                fontSize = 18,
+                borderbottom = "1px solid #f0f0f0",
+                padding = "6px"
+              ),
+              align = "center",
+              headerVAlign = "center",
+              style = list(
+                fontFamily = "Arial",
+                padding = "6px"
+              )
+            ),
+            columns = list(
+              year = colDef(name = "Year"),
+              prec = colDef(name = "Prec. (mm)")
+            ),
+            rowStyle = function(index){
+              if(.$year[index] == 2024){
+                list(background = "#ffffcc", fontWeight = "bold")
+              }
+            }) %>%
+  add_source(source = html("Data: Aemet.<br>Made by Oliver Q.R."),
+             font_size = 14,
+             font_style = "italic",
+             font_color = "grey50",
+             align = "left",
+             margin = margin(t = 10))
 
 
 
