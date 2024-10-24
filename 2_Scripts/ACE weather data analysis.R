@@ -606,16 +606,16 @@ ace_data %>%
               summarise(prec = sum(prec, na.rm = TRUE)) %>%
               mutate(prec_an = (100 * prec / ref_prec) - 100),
             by = "year") %>%
-  mutate(decade = as.character(10 * floor(year / 10))) %>%
+  mutate(decade = paste0(as.character(10 * floor(year / 10)), "s")) %>%
   ggplot(aes(x = prec_an, y = tmean_an, shape = decade)) +
   geom_rect(aes(xmin = -120, xmax = 0, ymin = -2, ymax = 0),
-            fill = "#a6cee3", alpha = 0.1) +
+            fill = "#a6cee3", alpha = 0.05) +
   geom_rect(aes(xmin = 0, xmax = 200, ymin = -2, ymax = 0),
-            fill = "#1f78b4", alpha = 0.1) +
+            fill = "#1f78b4", alpha = 0.05) +
   geom_rect(aes(xmin = 0, xmax = 200, ymin = 0, ymax = 2.5),
-            fill = "#d73027", alpha = 0.1) +
+            fill = "#d73027", alpha = 0.05) +
   geom_rect(aes(xmin = -120, xmax = 0, ymin = 0, ymax = 2.5),
-            fill = "#fdae61", alpha = 0.1) +
+            fill = "#fdae61", alpha = 0.05) +
   annotate(geom = "text", label = "Colder\nDrier", x = -115, y = -1.75, colour = "white",
            hjust = "left", fontface = "bold") +
   annotate(geom = "text", label = "Colder\nWetter", x = 195, y = -1.75, colour = "white",
@@ -627,13 +627,11 @@ ace_data %>%
   geom_label_repel(data = ~.x %>% filter(year == 2023),
                    aes(label = year), fontface = "bold") +
   geom_point(size = 3) +
-  scale_x_continuous(limits = c(-120, 200),
-                     expand = c(0, 0)) +
-  scale_y_continuous(limits = c(-2, 2.5),
-                     expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
   scale_shape_manual(values = 20:15) +
   labs(title = "Temperature and precipitation anomalies at Lanzarote airport",
-       subtitle = "Data from 1973-2023. Reference period: 1973-2000",
+       subtitle = "Data from 1973-2023. Reference period: 1981-2010",
        x = "Precipitation anomaly (%)",
        y = "Temperature anomaly (°C)",
        caption = "Data: Aemet.\nMade by Oliver Q.R.",
@@ -648,7 +646,7 @@ ace_data %>%
         axis.title.x = element_text(vjust = -2),
         axis.title.y = element_text(vjust = 2),
         axis.text = element_text(size = 12, face = "bold", colour = "grey30"),
-        panel.grid.major = element_line(colour = "grey90"),
+        panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
 
