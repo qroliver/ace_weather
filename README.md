@@ -1,1 +1,1 @@
-For further information, please go to https://qroliver.github.io/posts/ace_weather
+For further information, please go to https://www.oliverqr.com/posts/ace_weather
