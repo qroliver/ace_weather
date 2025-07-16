@@ -9,4 +9,4 @@ Next, it's time to turn into precipitation data. Drawing conclusions here can be
 Finally, I take a closer look at 2023 and 2024, exploring how daily temperatures deviated from the reference period, as well as monthly total precipitation.<br>
 <br>
 ## 🔍 Dive deeper.
-This repository contains the data and the code behind the analysis. The full story, presented in a nicer format and with detailed explanations, can be found [here](https://www.oliverqr.com/posts/ace_weather) 👈. If you are curious to know more about the climate in this stunning Canarian island, do not hesitate to check out the blog where I share some insights into how Lanzarote's temperature and rainfall have evolved over the last few decades.
+This repository contains the data and the code behind the analysis. The full story, presented in a nicer format and with detailed explanations, can be found [here](https://www.oliverqr.com/blog/ace_weather) 👈. If you are curious to know more about the climate in this stunning Canarian island, do not hesitate to check out the blog where I share some insights into how Lanzarote's temperature and rainfall have evolved over the last few decades.
