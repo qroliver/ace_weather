@@ -13,7 +13,7 @@ library(cowplot)
 
 
 # importing data
-ace_data <- read.csv("1_Data/aemet_ace_data_tidy.csv")
+ace_data <- read.csv("data/aemet_ace_data_clean.csv")
 
 
 # geographic location of Lanzarote
@@ -90,7 +90,7 @@ ggdraw(europe_africa_map) +
             height = 0.25)
 
 
-ggsave("3_Graphs/Geographic_location_Lanzarote.png",
+ggsave("graphs/Geographic_location_Lanzarote.png",
        plot = last_plot())
 
 
@@ -126,7 +126,7 @@ ace_data %>%
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
 
-ggsave("3_Graphs/Annual temperature.png",
+ggsave("graphs/Annual temperature.png",
        plot = last_plot())
 
 
@@ -184,7 +184,7 @@ ace_data %>%
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
 
-ggsave("3_Graphs/Temp anomalies.png",
+ggsave("graphs/Temp anomalies.png",
        plot = last_plot())
 
 
@@ -217,7 +217,7 @@ ace_data %>%
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
 
-ggsave("3_Graphs/Mean temperature by decade.png",
+ggsave("graphs/Mean temperature by decade.png",
        plot = last_plot())
 
 
@@ -257,7 +257,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Monthly mean temp by decade.png",
+ggsave("graphs/Monthly mean temp by decade.png",
        plot = last_plot())
 
 
@@ -400,7 +400,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Annual precipitation.png",
+ggsave("graphs/Annual precipitation.png",
        plot = last_plot())
 
 
@@ -456,7 +456,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Prec anomalies.png",
+ggsave("graphs/Prec anomalies.png",
        plot = last_plot())
 
 
@@ -496,7 +496,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Monthly mean temp by decade.png",
+ggsave("graphs/Monthly mean temp by decade.png",
        plot = last_plot())
 
 
@@ -534,7 +534,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Annual precipitation.png",
+ggsave("graphs/Annual precipitation.png",
        plot = last_plot())
 
 
@@ -589,7 +589,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Prec anomalies.png",
+ggsave("graphs/Prec anomalies.png",
        plot = last_plot())
 
 
@@ -650,7 +650,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Prec temp anomalies.png",
+ggsave("graphs/Prec temp anomalies.png",
        plot = last_plot())
 
 
@@ -708,7 +708,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Temp2023_day_by_day.png",
+ggsave("graphs/Temp2023_day_by_day.png",
        plot = last_plot())
 
 
@@ -757,7 +757,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Monthly prec 2023.png",
+ggsave("graphs/Monthly prec 2023.png",
        plot = last_plot())
 
 
@@ -806,7 +806,7 @@ ace_data %>%
         legend.position = "none")
 
 
-ggsave("3_Graphs/Mean temp 2024.png",
+ggsave("graphs/Mean temp 2024.png",
        plot = last_plot())
 
 
@@ -914,7 +914,7 @@ ace_data %>%
         panel.grid.major = element_line(colour = "grey90"),
         panel.grid.minor = element_blank())
 
-ggsave("3_Graphs/Daily mean temp 2024.png",
+ggsave("graphs/Daily mean temp 2024.png",
        plot = last_plot())
 
 
@@ -964,7 +964,7 @@ ace_data %>%
         legend.position = "none")
 
 
-ggsave("3_Graphs/Total precipitation 2024.png",
+ggsave("graphs/Total precipitation 2024.png",
        plot = last_plot())
 
 
@@ -1016,7 +1016,7 @@ ace_data %>%
         panel.grid.minor = element_blank())
 
 
-ggsave("3_Graphs/Montly precipitation 2024.png",
+ggsave("graphs/Montly precipitation 2024.png",
        plot = last_plot())
 
 

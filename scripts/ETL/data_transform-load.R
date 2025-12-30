@@ -4,7 +4,7 @@ library(zoo)
 
 
 # loading data
-ace_data_raw <- read_csv("1_Data/aemet_ace_data_raw.csv", locale = locale(decimal_mark = ","))
+ace_data_raw <- read_csv("data/aemet_ace_data_raw.csv", locale = locale(decimal_mark = ","))
 
 
 # glimpse at the data
@@ -72,7 +72,7 @@ ace_data %>%
 
 
 # saving tidy data
-write_csv(ace_data, "1_Data/aemet_ace_data_tidy.csv")
+write_csv(ace_data, "data/aemet_ace_data_clean.csv")
 
 
 

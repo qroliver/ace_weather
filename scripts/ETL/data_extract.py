@@ -9,13 +9,11 @@ Created on Fri Aug  9 14:08:48 2024
 # importing packages
 
 import requests
-import json
 import pandas as pd
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 import time
 import random
-
 
 
 # api key
@@ -119,7 +117,7 @@ data = pd.concat([data, period_data], ignore_index = True)
 
 
 # saving as csv
-data.to_csv(".../aemet_ace_data.csv", index=False)
+data.to_csv("data/aemet_ace_data_raw.csv", index=False)
 
 
 

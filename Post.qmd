@@ -24,7 +24,7 @@ library(cowplot)
 
 
 # importing data
-ace_data <- read.csv("1_Data/aemet_ace_data_tidy.csv")
+ace_data <- read.csv("data/aemet_ace_data_clean.csv")
 ```
 
 # A look at the last 50 years of temperature and precipitation data in Lanzarote.
